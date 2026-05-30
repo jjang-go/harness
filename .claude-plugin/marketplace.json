@@ -9,8 +9,8 @@
     {
       "name": "harness-starter",
       "source": "./",
-      "description": "초보자를 위한 대화형 프로젝트 세팅 위저드. 다지선다 질문으로 프로젝트 스코프 .claude 설정(CLAUDE.md, rules, 권한/훅)을 단계별로 생성한다.",
-      "version": "0.1.0"
+      "description": "초보자를 위한 대화형 프로젝트 세팅 위저드. 다지선다 질문으로 프로젝트 스코프 .claude 설정(CLAUDE.md, rules, 권한/훅)을 단계별로 생성한다. 세션 시작 시 기본 CLAUDE.md(행동 가이드라인)를 자동 세팅하며, 복사-사용 템플릿 세트(templates/)와 범용 가이드(docs/)도 제공한다.",
+      "version": "0.3.0"
     }
   ]
 }

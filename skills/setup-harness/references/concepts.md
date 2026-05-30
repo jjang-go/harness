@@ -11,7 +11,14 @@
 6. settings.json — 훅(hooks)
 7. skills (스킬)
 8. agents (서브에이전트)
-9. 무엇을 어디에 넣어야 하나요
+9. commands (커맨드)
+10. output-styles (출력 스타일)
+11. workflows (동적 워크플로우)
+12. agent-memory (에이전트 메모리)
+13. .mcp.json (MCP 서버)
+14. .worktreeinclude
+15. 개인용 파일 (settings.local.json / CLAUDE.local.md)
+16. 무엇을 어디에 넣어야 하나요
 
 ---
 
@@ -52,7 +59,35 @@ Claude가 **매 세션 시작 때마다 읽는 프로젝트 안내서.** "빌드
 
 자기만의 별도 작업 공간(컨텍스트)에서 도는 보조 일꾼. 메인 대화를 깔끔하게 유지하면서 검토·조사 같은 일을 따로 맡길 때 쓴다. 예: 읽기 전용 `code-reviewer`. `@`를 입력해 직접 부를 수도 있다. 초보자에게는 처음부터 필요하진 않다 — "확장" 깊이에서 맛보기로만 제공한다.
 
-## 9. 무엇을 어디에 넣어야 하나요
+## 9. commands (커맨드)
+
+`/이름`으로 부르는 단일 파일 작업(`.claude/commands/이름.md`). 스킬과 같은 메커니즘이다. 새로 만들 거라면 **스킬을 권장**한다(스킬은 지원 파일을 번들할 수 있다). 커맨드는 예전 방식 호환용으로 남아 있다.
+
+## 10. output-styles (출력 스타일)
+
+Claude가 **응답하는 방식**을 바꾸는 설정(`.claude/output-styles/이름.md`). 예: "각 작업 뒤에 왜 그렇게 했는지 설명을 붙여라" 같은 교육 모드. 시스템 프롬프트에 덧붙는 방식이라 보통 개인용이지만, 팀이 공유하는 스타일이면 프로젝트에 둔다.
+
+## 11. workflows (동적 워크플로우)
+
+여러 서브에이전트를 한 번에 조율하는 스크립트(`.claude/workflows/*.js`). **손으로 작성하지 않는다** — 세션에서 `/workflows`로 실행한 결과를 저장하면 만들어진다. 큰 작업(대규모 리뷰, 마이그레이션)을 자동화할 때 쓰며, 초보자에게는 처음부터 필요하지 않다.
+
+## 12. agent-memory (에이전트 메모리)
+
+서브에이전트가 **세션이 바뀌어도 기억을 이어가도록** 자동으로 쌓는 메모(`.claude/agent-memory/<에이전트>/MEMORY.md`). 사람이 쓰지 않고 에이전트가 스스로 읽고 쓴다. 에이전트 정의에 `memory: project`(공유) / `memory: local`(개인) 등을 설정하면 생긴다.
+
+## 13. .mcp.json (MCP 서버)
+
+Claude에 **외부 도구**(데이터베이스, GitHub, 브라우저 등)를 연결하는 설정. 프로젝트 루트(`.claude/` 밖)에 둔다. 팀이 공유한다. 토큰 같은 비밀값은 파일에 직접 쓰지 말고 `${GITHUB_TOKEN}`처럼 환경 변수 참조로 둔다.
+
+## 14. .worktreeinclude
+
+git **worktree**(같은 저장소의 또 다른 작업 공간)를 새로 만들 때, `.env`처럼 git에 안 올라가는 파일을 새 worktree로 복사하도록 목록을 적어두는 파일. worktree를 자주 쓰지 않으면 필요 없다.
+
+## 15. 개인용 파일 (settings.local.json / CLAUDE.local.md)
+
+"나만" 쓰고 팀과 공유하지 않는 파일. `settings.local.json`은 개인 권한/설정, `CLAUDE.local.md`는 개인 지침이다. 둘 다 `.gitignore`에 넣어 커밋되지 않게 한다(`settings.local.json`은 Claude Code가 자동으로 넣어주기도 한다).
+
+## 16. 무엇을 어디에 넣어야 하나요
 
 | 하고 싶은 것 | 넣을 곳 |
 |--------------|---------|
@@ -61,5 +96,8 @@ Claude가 **매 세션 시작 때마다 읽는 프로젝트 안내서.** "빌드
 | 주제별·파일별로 규칙 나누기 | `.claude/rules/*.md` |
 | `/이름`으로 부르는 작업 추가 | `.claude/skills/<이름>/SKILL.md` |
 | 별도 컨텍스트의 전문 보조 | `.claude/agents/*.md` |
+| 외부 도구(DB·GitHub 등) 연결 | `.mcp.json` |
+| 응답 방식(교육·리뷰 모드) 바꾸기 | `.claude/output-styles/*.md` |
+| 나만 쓰는 개인 설정/지침 | `settings.local.json` · `CLAUDE.local.md` (gitignore) |
 
 > 초보자에게는 "일단 CLAUDE.md + 권한부터, 필요해지면 늘리면 된다"가 가장 안전한 출발점이다.

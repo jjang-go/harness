@@ -45,6 +45,21 @@
 `특정 부분만` 선택 시 후속 질문(다중 선택):
 - "어디를 손댈까요?" → `CLAUDE.md` / `권한·훅` / `규칙(rules)` / `에이전트·스킬`
 
+### 2-1. CLAUDE.md 통합 (기존 CLAUDE.md가 있을 때)
+
+플러그인은 기본 CLAUDE.md(`${CLAUDE_PLUGIN_ROOT}/templates/CLAUDE.md` — Karpathy 가이드라인 + MIT 헤더)를 제공한다. **없으면 무조건 설치**(SessionStart 훅 또는 위저드). **있으면** 아래 4지선다로 통합 방식을 고르게 한다. 어느 경로든 설치 시 **MIT 헤더는 보존**한다.
+
+- **질문:** "이미 CLAUDE.md가 있어요. 기본 가이드라인(CLAUDE.md)을 어떻게 적용할까요?"
+- **선택지 (단일 선택):**
+  - `기존 유지 (추천)` — 그대로 두고 기본 가이드라인을 설치하지 않음
+  - `Karpathy로 교체(백업)` — 기존을 `CLAUDE.md.bak`으로 백업한 뒤 기본 CLAUDE.md 설치
+  - `기존 보존 + 이전` — 기존 내용을 `.claude/HARNESS.md`로 정리해 옮기고, 기본 CLAUDE.md 설치 후 그 **끝에 한 줄** 추가: `프로젝트별 지침은 .claude/HARNESS.md 참조`
+  - `덮어쓰기` — 백업 없이 기본 CLAUDE.md(MIT 헤더 포함)로 교체. 설치 시 `templates/CLAUDE.md` 원본을 그대로 쓴다(내용만 재작성 금지 — 헤더 보존)
+- `기존 보존 + 이전` 동작 상세:
+  1. 기존 `CLAUDE.md` 내용을 `.claude/HARNESS.md`로 옮긴다(중복·잡음은 정리하되 사용자 의미는 보존).
+  2. `${CLAUDE_PLUGIN_ROOT}/templates/CLAUDE.md`를 `CLAUDE.md`로 설치(MIT 헤더 포함).
+  3. 새 `CLAUDE.md` **맨 끝**에 한 줄: `> 프로젝트별 지침은 [.claude/HARNESS.md](.claude/HARNESS.md)를 참조한다.`
+
 ---
 
 ## 3. Step 2 — 깊이 선택
@@ -68,12 +83,13 @@
 | Step 3 코드 컨벤션 질문 | 생략 | O | O |
 | Step 3 권한 | O | O | O |
 | Step 3 자동 포맷 훅 | 포매터 감지 시 | 포매터 감지 시 | 포매터 감지 시 |
-| Step 4 스타터 에이전트/스킬 | 생략 | 생략 | O |
+| Step 4 추가/고급 항목 다중 선택 | 요청 시만 | 제안 | O |
 | 생성: `CLAUDE.md` | O | O | O |
 | 생성: `.claude/settings.json` | O | O | O |
 | 생성: `.claude/rules/*.md` | 생략 | O | O |
-| 생성: `.claude/agents/*.md` | 생략 | 생략 | 선택 시 |
-| 생성: `.claude/skills/*/` | 생략 | 생략 | 선택 시 |
+| 생성: 추가/고급 항목(아래 6절) | 생략 | 선택 시 | 선택 시 |
+
+> "기본"은 핵심 2개만 빠르게 — Step 4 게이트 질문 없이 건너뛰되, 사용자가 추가를 요청하면 그때 보여준다. "표준"은 규칙까지 + 추가 항목을 가볍게 제안. "확장"은 추가/고급 항목 다중 선택을 적극 제공. (적응형)
 
 ---
 
@@ -109,15 +125,32 @@
 
 ---
 
-## 6. Step 4 — 스타터 (확장 깊이만)
+## 6. Step 4 — 추가/고급 항목
 
-- **질문:** "맛보기용 스타터를 만들어 둘까요? 나중에 직접 늘릴 수 있어요." (다중 선택 가능)
-- **선택지:**
-  - `code-reviewer 에이전트` — 읽기 전용으로 코드를 검토하는 보조 에이전트
-  - `스타터 스킬 (/run-checks)` — test·lint를 한 번에 돌리는 단축 스킬
-  - `둘 다`
-  - `아니요`
-- 선택된 항목만 `references/templates.md`의 해당 템플릿으로 생성한다.
+핵심(CLAUDE.md+권한)과 규칙 외에 더 설정할 항목을 고르게 한다. **확장** 깊이면 적극 제공하고, **표준**이면 가볍게 제안하며, 어느 깊이든 사용자가 원하면 보여준다.
+
+먼저 게이트 질문으로 시작한다:
+- **질문:** "핵심 설정 외에 추가로 만들어 둘 항목이 있을까요? 나중에 직접 늘릴 수도 있어요."
+- **선택지:** `아니요, 핵심만 (추천)` / `전문화 항목 보기` / `설정 파일 보기` / `둘 다 보기`
+
+`보기`를 고르면 해당 그룹을 **다중 선택**으로 제시한다. (호스트 AskUserQuestion은 선택지 최대 4개이므로 그룹을 나눠 묻는다. 필요 없으면 "Other"로 건너뛴다.)
+
+**그룹 A — 전문화 항목** (다중 선택)
+- `code-reviewer 에이전트` — 읽기 전용으로 코드를 검토하는 보조 에이전트
+- `run-checks 스킬` — test·lint를 한 번에 돌리는 단축 스킬(`/run-checks`)
+- `출력 스타일(교육 모드)` — 설명을 덧붙이는 응답 스타일
+- `커맨드 예시(레거시)` — 단일 파일 커맨드 예시(새 작업엔 스킬 권장)
+
+**그룹 B — 설정 파일** (다중 선택)
+- `.mcp.json` — 외부 도구 연결(MCP 서버). 시크릿은 `${ENV_VAR}` 참조로만
+- `.worktreeinclude` — worktree로 복사할 gitignored 파일 목록
+- `CLAUDE.local.md` — 나만 쓰는 개인 지침(gitignore)
+- `settings.local.json` — 나만 쓰는 개인 권한/설정(gitignore)
+
+생성 규칙:
+- 선택된 항목만 `references/templates.md`의 파일 맵을 따라 `${CLAUDE_PLUGIN_ROOT}/templates/`에서 읽어 생성한다.
+- 개인용 항목(`CLAUDE.local.md`, `settings.local.json`)을 만들면 `.gitignore` 등록을 함께 안내한다.
+- `workflows`·`agent-memory`는 복사 생성 대상이 아니다 — 필요성을 언급하면 만드는 법(각각 `/workflows`, 에이전트 `memory:` 설정)만 안내한다.
 
 ---
 

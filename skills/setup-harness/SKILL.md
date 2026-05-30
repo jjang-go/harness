@@ -36,6 +36,7 @@ Claude Code를 처음 쓰는 사람도 **타이핑·전문용어 없이 클릭�
    기존 설정이 **없으면** 바로 Step 1로 간다.
 
 > 핵심: 사용자의 기존 작업을 말없이 날리지 않는다. 의심스러우면 보존하고 물어본다.
+> `CLAUDE.md`는 플러그인이 기본 제공하는 파일(Karpathy 행동 가이드라인)이 있어 **별도 처리**한다 — Step 6의 "CLAUDE.md 처리" 참조. (SessionStart 훅이 "없을 때 자동 생성"을 이미 담당하므로, 위저드는 주로 "있을 때 통합"을 다룬다.)
 
 ### Step 1 · 프로젝트 자동 파악 + 확인
 
@@ -67,13 +68,11 @@ Claude Code를 처음 쓰는 사람도 **타이핑·전문용어 없이 클릭�
 - **권한** (모든 깊이): 자주 쓰는 안전 명령(test·lint·build 등)을 자동 허용할지, 위험 명령(`rm -rf`, force push 등)을 차단할지 확인. 기본은 둘 다 "예(추천)".
 - **자동 포맷 훅** (포매터 감지 시에만): "파일 편집 후 자동으로 포매터를 돌릴까요?" 예/아니오. 훅이 무엇인지 한 줄 설명을 곁들인다.
 
-### Step 4 · (확장 선택 시) 스타터 에이전트·스킬
+### Step 4 · 추가/고급 항목
 
-확장 깊이일 때만 진행한다. `AskUserQuestion`으로 원하는 스타터를 고르게 한다:
-- 읽기 전용 **`code-reviewer`** 에이전트 (정의 템플릿: `references/templates.md`)
-- 간단한 **스타터 스킬** 1개 (예: 프로젝트에 맞춘 `/run-checks`)
+핵심·규칙 외에 더 만들 항목을 고르게 한다. **확장**이면 적극, **표준**이면 가볍게 제안하고, 어느 깊이든 사용자가 원하면 보여준다. 먼저 게이트 질문("추가로 만들 항목 있나요?")으로 시작하고, 원하면 **전문화 항목**(code-reviewer 에이전트, run-checks 스킬, 출력 스타일, 커맨드 예시)과 **설정 파일**(.mcp.json, .worktreeinclude, CLAUDE.local.md, settings.local.json)을 다중 선택으로 제시한다.
 
-원치 않으면 건너뛴다. 스타터는 "예시이자 출발점"이며 나중에 사용자가 직접 늘릴 수 있음을 알린다.
+> 질문문·선택지·그룹 구성은 `references/question-flow.md`의 6절을 따른다. 선택한 항목만 생성하고, 모두 "예시이자 출발점"이며 나중에 직접 늘릴 수 있음을 알린다.
 
 ### Step 5 · 미리보기 + 최종 확인
 
@@ -83,11 +82,17 @@ Claude Code를 처음 쓰는 사람도 **타이핑·전문용어 없이 클릭�
 
 ### Step 6 · 생성
 
-확인을 받은 뒤에만 파일을 쓴다. `references/templates.md`의 템플릿에 Step 1~4에서 모은 값을 채워 생성한다.
+확인을 받은 뒤에만 파일을 쓴다. 템플릿 **원본 파일**은 `${CLAUDE_PLUGIN_ROOT}/templates/`에 있다 — `references/templates.md`의 파일 맵을 보고 해당 파일을 읽어, Step 1~4에서 모은 값으로 `{{...}}`를 치환한 뒤 사용자 프로젝트의 같은 경로에 쓴다.
 
-- **생성/수정 파일**: `CLAUDE.md`, `.claude/settings.json`, (표준+) `.claude/rules/*.md`, (확장+) `.claude/agents/*.md`·`.claude/skills/*/SKILL.md`.
+**CLAUDE.md 처리 (특수):** 기본 CLAUDE.md는 `${CLAUDE_PLUGIN_ROOT}/templates/CLAUDE.md`(Karpathy 행동 가이드라인 + MIT 고지 헤더)다. **상단 MIT 헤더는 어떤 경로에서도 절대 누락하지 않는다(라이선스 의무).**
+- **없으면:** 이 파일을 그대로 써넣는다(무조건). 프로젝트 컨텍스트(Commands/Stack 등)가 필요하면 그 **아래에 추가 섹션**으로 덧붙인다(`references/templates.md`의 "프로젝트 컨텍스트 append 블록").
+- **있으면:** `AskUserQuestion`으로 통합 방식을 고르게 한다 (선택지·동작은 `references/question-flow.md` **2-1절**). 이 4지선다는 Step 0에서 무엇을 골랐든 CLAUDE.md에 대해 동일하게 적용한다:
+  1. 기존 유지 · 2. Karpathy로 교체(기존 `CLAUDE.md.bak` 백업) · 3. 기존 내용을 `.claude/HARNESS.md`로 정리·이전 + Karpathy 설치 + 끝에 "프로젝트별 지침은 `.claude/HARNESS.md` 참조" 한 줄 · 4. 덮어쓰기.
+  어느 경우든 설치되는 CLAUDE.md는 `templates/CLAUDE.md` **원본을 그대로** 쓰므로 MIT 헤더가 보존된다(내용만 재작성 금지).
+
+- **생성/수정 파일**: `CLAUDE.md`, `.claude/settings.json`, (표준+) `.claude/rules/*.md`, (Step 4 선택분) `.claude/agents/*.md`·`.claude/skills/*/SKILL.md`·`.mcp.json`·`.worktreeinclude`·`.claude/output-styles/*.md`·`CLAUDE.local.md`·`.claude/settings.local.json` 등.
 - 각 파일 상단/요소에 **초보자용 주석**을 넣어, 나중에 열어봤을 때 스스로 이해하도록 한다.
-- 기존 파일은 **덮어쓰지 말고** 빠진 절만 이어쓴다. JSON(`settings.json`)은 기존 키를 보존하며 병합한다.
+- `CLAUDE.md`는 위 "CLAUDE.md 처리"를 따른다. 그 외 기존 파일은 **덮어쓰지 말고** 빠진 절만 이어쓴다. JSON(`settings.json`)은 기존 키를 보존하며 병합한다.
 - `settings.json`의 `permissions.allow`/`deny`는 배열 병합이므로, 기존 항목을 지우지 않고 합친다.
 
 ### Step 7 · 설명 + 다음 단계
@@ -102,11 +107,13 @@ Claude Code를 처음 쓰는 사람도 **타이핑·전문용어 없이 클릭�
 
 ## 참조 파일 (필요할 때만 읽는다)
 
-- `references/question-flow.md` — 각 Step의 질문문·선택지·깊이별 분기 매트릭스·프로젝트 감지 규칙. **위저드 진행 중 항상 곁에 두고 따른다.**
-- `references/templates.md` — 생성할 파일들의 템플릿(CLAUDE.md, rules, settings.json, 스타터 에이전트/스킬). **Step 6 생성 직전에 읽는다.**
-- `references/concepts.md` — 초보자 용어집. **사용자가 개념을 물을 때 읽고 쉽게 풀어 설명한다.**
+- `references/question-flow.md` — 각 Step의 질문문·선택지·깊이별 분기 매트릭스·프로젝트 감지 규칙·Step 4 고급 항목 그룹. **위저드 진행 중 항상 곁에 두고 따른다.**
+- `references/templates.md` — 템플릿 **인덱스 + 채움 규칙**(파일 맵·자리표시자·병합 규칙). 원본 파일은 `${CLAUDE_PLUGIN_ROOT}/templates/`. **Step 6 생성 직전에 읽는다.**
+- `references/concepts.md` — 초보자 용어집(16개 항목). **사용자가 개념을 물을 때 읽고 쉽게 풀어 설명한다.**
+
+> 사람이 손으로 복사해 쓰는 범용 가이드는 `${CLAUDE_PLUGIN_ROOT}/docs/project-setup-guide.md`에 있다. 사용자가 "대화 말고 직접 복사하고 싶다"고 하면 이 가이드와 `templates/`를 안내한다.
 
 ## 테스트 시나리오
 
 - **정상 흐름:** 빈 Node 프로젝트 → `/setup-harness` → 스택 감지 확인 → 깊이 "표준" → 명령/컨벤션/권한 확인 → 미리보기 승인 → `CLAUDE.md` + `.claude/settings.json` + `.claude/rules/*.md` 생성 → 설명.
-- **기존 설정 보완:** `CLAUDE.md`가 이미 있는 프로젝트 → Step 0에서 "보완하기" → 기존 내용 보존하고 빠진 "Commands" 절만 추가 → 미리보기에 추가분만 표시.
+- **기존 CLAUDE.md 통합:** `CLAUDE.md`가 이미 있는 프로젝트 → CLAUDE.md 4지선다(2-1절)에서 "기존 보존 + 이전" 선택 → 기존 내용을 `.claude/HARNESS.md`로 이전, Karpathy CLAUDE.md(MIT 헤더) 설치, 끝에 `.claude/HARNESS.md` 참조 한 줄 추가 → 미리보기 후 적용.

@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash({{TEST}}*)",
+      "Bash({{LINT}}*)",
+      "Bash({{BUILD}}*)",
+      "Bash({{FORMAT}}*)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | xargs {{FORMATTER}}"
+          }
+        ]
+      }
+    ]
+  }
+}

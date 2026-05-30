@@ -1,33 +1,63 @@
-# 생성 파일 템플릿 (templates)
+# 생성 파일 템플릿 (templates) — 인덱스 + 채움 규칙
 
-Step 6에서 파일을 만들기 직전에 읽는다. 아래 템플릿의 `{{...}}` 자리표시자를 Step 1~4에서 모은 값으로 치환해 생성한다.
+Step 6에서 파일을 만들기 직전에 읽는다. 템플릿의 **실제 원본 파일**은 플러그인 번들의 `${CLAUDE_PLUGIN_ROOT}/templates/` 에 있다. 해당 파일을 읽어 `{{...}}` 자리표시자를 Step 1~4에서 모은 값으로 치환한 뒤 사용자 프로젝트의 같은 경로에 쓴다.
+
+> 템플릿은 타깃 레이아웃 그대로 미러되어 있다(예: `templates/.claude/settings.json` → 사용자 프로젝트의 `.claude/settings.json`). 사람이 직접 쓸 때는 `templates/` 전체를 복사하면 된다 — `docs/project-setup-guide.md` 참조.
+
+## 템플릿 파일 맵
+
+| 항목 | 원본 템플릿 | 깊이 |
+|------|------------|------|
+| CLAUDE.md (Karpathy 가이드라인 + MIT 헤더, 기본 제공) | `templates/CLAUDE.md` | 항상 |
+| 권한·훅 | `templates/.claude/settings.json` | 기본+ |
+| 개인 지침 | `templates/CLAUDE.local.md` | 고급(선택) |
+| 개인 설정 | `templates/.claude/settings.local.json` | 고급(선택) |
+| 규칙 | `templates/.claude/rules/{testing,code-style}.md` | 표준+ |
+| MCP 서버 | `templates/.mcp.json` | 고급(선택) |
+| worktree 복사 | `templates/.worktreeinclude` | 고급(선택) |
+| 코드 리뷰어 | `templates/.claude/agents/code-reviewer.md` | 확장(선택) |
+| 스타터 스킬 | `templates/.claude/skills/run-checks/SKILL.md` | 확장(선택) |
+| 커맨드(레거시) | `templates/.claude/commands/example.md` | 고급(선택) |
+| 출력 스타일 | `templates/.claude/output-styles/teaching.md` | 고급(선택) |
+| 워크플로우 | `templates/.claude/workflows/README.md`(안내) | 고급(안내만) |
+| 에이전트 메모리 | `templates/.claude/agent-memory/README.md`(안내) | 자동(안내만) |
+
+> `workflows`와 `agent-memory`는 복사용 설정이 아니다(각각 `/workflows`로 생성, 서브에이전트가 자동 생성). 위저드는 생성하지 말고 안내만 한다.
 
 ## 자리표시자
-- `{{PROJECT_NAME}}` — 디렉터리명 또는 사용자가 준 이름
-- `{{LANG}}` / `{{FRAMEWORK}}` — 감지/확인된 스택
-- `{{BUILD}}` `{{TEST}}` `{{LINT}}` `{{FORMAT}}` — 확인된 명령 (없으면 해당 줄 생략)
-- `{{FORMATTER}}` — 감지된 포매터 명령 (예: `npx prettier --write`)
-- `{{CONVENTIONS}}` — Step 3에서 고른 컨벤션 항목들
 
-## 작성 원칙
-- 마크다운 파일(`CLAUDE.md`, `rules/*.md`, `agents/*.md`)에는 **초보자용 주석**을 자연스럽게 녹인다. 나중에 열어봤을 때 스스로 이해하도록.
-- 해당 없는 줄/절은 통째로 **생략**한다. 빈 자리표시자를 남기지 않는다.
-- 기존 파일을 보완할 때는 **빠진 절만** 이어쓴다. 이미 있는 절은 손대지 않는다.
-- `settings.json`은 JSON이라 주석을 넣을 수 없다. 설명은 Step 7 말로 전달하고 파일은 깔끔히 둔다. 기존 파일이 있으면 **키 병합**(배열은 합치고 중복 제거)한다.
+| 자리표시자 | 의미 |
+|-----------|------|
+| `{{PROJECT_NAME}}` | 디렉터리명 또는 사용자가 준 이름 |
+| `{{LANG}}` / `{{FRAMEWORK}}` | 감지/확인된 스택 |
+| `{{BUILD}}` `{{TEST}}` `{{LINT}}` `{{FORMAT}}` | 확인된 명령 (없으면 해당 줄 생략) |
+| `{{FORMATTER}}` | 감지된 포매터 명령 (예: `npx prettier --write`) |
+| `{{EXT}}` | 언어 확장자 (ts/tsx, py, go 등) |
+
+## 채움·조립 규칙
+
+마크다운 파일(`CLAUDE.md`, `rules/*.md`, `agents/*.md` 등)의 초보자용 주석(`<!-- -->`)은 그대로 두면 학습에 도움이 된다. 다만 자리표시자는 반드시 치환한다.
+
+- **CLAUDE.md (특수 — Karpathy 기본 + 프로젝트 컨텍스트 append)**
+  - 기본 파일 `templates/CLAUDE.md`(Karpathy 가이드라인)는 **그대로** 설치한다. 본문엔 `{{}}` 자리표시자가 없다. **상단 MIT 헤더 주석은 절대 제거/변형하지 않는다(라이선스 의무).**
+  - 설치/통합 분기(없으면 무조건 설치, 있으면 4지선다)는 `question-flow.md` 2-1을 따른다.
+  - 프로젝트별 컨텍스트(Commands/Stack/Rules)가 필요하면 가이드라인 **아래에 "프로젝트 컨텍스트 append 블록"(바로 아래)** 을 덧붙인다.
+- **settings.json**
+  - `allow`에는 Step 3에서 확인된 명령만, 와일드카드 `*`로 인자 변형 허용.
+  - `deny`는 위험 명령 차단을 선택했을 때만.
+  - `hooks`는 포매터 감지 + 사용자가 "예"일 때만. 아니면 `hooks` 키 자체를 뺀다.
+  - 훅 `command`는 이벤트 JSON을 **stdin**으로 받고 `jq`는 인자 없이 stdin을 읽는다(공식 문서 형식). `{{FORMATTER}}`만 치환.
+- **rules/*.md**: `{{EXT}}`를 언어 확장자로. `src/`가 없으면 `paths:`를 실제 경로로 바꾸거나 제거.
+- **.mcp.json**: 예시 서버는 실제 필요한 것으로 교체. 토큰은 `${ENV_VAR}` 참조 유지(파일에 직접 쓰지 않는다).
+- **run-checks 스킬**: `{{LINT}}`/`{{TEST}}` 중 없는 줄 제거. 둘 다 없으면 이 스킬 생성 안 함.
+
+## 프로젝트 컨텍스트 append 블록 (CLAUDE.md 가이드라인 아래에 덧붙임)
+
+자리표시자를 치환해 가이드라인 본문 끝(MIT 헤더·가이드라인은 그대로 둠)에 덧붙인다. 값이 없는 줄은 생략한다.
+
+```markdown
 
 ---
-
-## 1. `CLAUDE.md` (모든 깊이)
-
-> 매 세션 시작 시 항상 로드되는 프로젝트 지침서다. 200줄 이내를 권장한다.
-
-````markdown
-# {{PROJECT_NAME}}
-
-<!-- 이 파일은 Claude가 매 세션마다 읽는 프로젝트 안내서입니다.
-     자주 쓰는 명령, 기술 스택, 지켜야 할 규칙을 적어두면
-     Claude가 매번 설명하지 않아도 같은 전제로 작업합니다.
-     `/memory` 명령으로 언제든 열어 수정할 수 있어요. -->
 
 ## Commands
 - Build: `{{BUILD}}`
@@ -38,152 +68,15 @@ Step 6에서 파일을 만들기 직전에 읽는다. 아래 템플릿의 `{{...
 ## Stack
 - {{LANG}}
 
-## Rules
-{{CONVENTIONS를 불릿으로. 예시:}}
-- {{LANG}} strict 모드 사용
-- named export 사용, default export 지양
-- 테스트는 소스 옆에 둔다: `foo.ts` → `foo.test.ts`
-````
-
-채움 규칙:
-- **Stack 줄:** FRAMEWORK가 감지됐으면 `- {{LANG}}, {{FRAMEWORK}}`로 쓰고, 없으면 `- {{LANG}}`만.
-- **Commands 줄:** 값이 없는 명령(예: Format 미감지)은 해당 줄을 통째로 생략한다.
-
-표준/확장 깊이에서 규칙을 별도 `rules/` 파일로 분리한 경우, CLAUDE.md의 `## Rules` 절은 짧게 두고 "세부 규칙은 `.claude/rules/`에 있음" 한 줄을 남긴다.
-
----
-
-## 2. `.claude/rules/testing.md` (표준·확장, 테스트 도구가 있을 때)
-
-> `paths:` 프런트매터가 있는 규칙은 매칭되는 파일을 열 때만 로드된다. 테스트 파일을 만질 때만 이 규칙이 컨텍스트에 들어온다.
-
-```markdown
----
-paths:
-  - "**/*.test.{{EXT}}"
-  - "**/*.spec.{{EXT}}"
----
-
-# 테스트 규칙
-
-<!-- 이 규칙은 테스트 파일을 열 때만 자동으로 로드됩니다. -->
-
-- 테스트 이름은 "should [기대결과] when [조건]" 형태로 명확히 쓴다
-- 외부 의존성은 모킹하고, 내부 모듈은 실제로 사용한다
-- 부수효과는 afterEach에서 정리한다
-- 새 기능에는 happy path + edge case 테스트를 모두 포함한다
+## Project Rules
+- (Step 3 컨벤션 답변을 불릿으로)
 ```
 
-`{{EXT}}`는 언어 확장자(ts/tsx, py, go 등). Go 등 `_test.go` 관례가 있으면 그에 맞춰 glob을 조정한다.
+채움 규칙: Stack 줄은 FRAMEWORK가 있으면 `- {{LANG}}, {{FRAMEWORK}}`. Commands는 값 없는 명령 줄 생략. 규칙을 `.claude/rules/`로 분리했으면 `## Project Rules`는 "세부 규칙은 `.claude/rules/` 참조" 한 줄만.
 
----
+## 기존 파일 병합 규칙 (무단 덮어쓰기 금지)
 
-## 3. `.claude/rules/code-style.md` (표준·확장)
-
-```markdown
----
-paths:
-  - "src/**/*.{{EXT}}"
----
-
-# 코드 스타일
-
-<!-- src 아래 소스 파일을 열 때만 로드되는 규칙입니다. -->
-
-{{Step 3 컨벤션 답변을 규칙으로 옮긴다. 예시:}}
-- 함수는 한 가지 일만 하고 짧게 유지한다
-- 가독성을 영리함보다 우선한다
-- 주석은 "왜"를 설명한다 ("무엇"은 코드로)
-```
-
-> 프로젝트에 `src/`가 없으면 `paths:`를 실제 소스 경로에 맞추거나, 경로 제한 없는 일반 규칙으로 만든다.
-
----
-
-## 4. `.claude/settings.json` (모든 깊이)
-
-권한 선택과 포맷 훅 선택에 따라 조립한다. 아래는 "둘 다 + 자동 포맷" 최대 예시다. 선택 안 한 부분은 뺀다.
-
-```json
-{
-  "permissions": {
-    "allow": [
-      "Bash({{TEST}}*)",
-      "Bash({{LINT}}*)",
-      "Bash({{BUILD}}*)",
-      "Bash({{FORMAT}}*)"
-    ],
-    "deny": [
-      "Bash(rm -rf *)",
-      "Bash(git push --force*)",
-      "Bash(git push -f*)"
-    ]
-  },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "jq -r '.tool_input.file_path' | xargs {{FORMATTER}}"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-조립 규칙:
-- `allow`에는 Step 3에서 확인된 명령만 넣는다. 와일드카드 `*`로 인자 변형을 허용한다 (예: `Bash(npm test *)`).
-- `deny`는 위험 명령 차단을 선택했을 때만. 사용자 환경 규칙(force push 금지 등)과 맞춘다.
-- `hooks`는 포매터 감지 + 사용자가 "예"를 골랐을 때만. 아니면 `hooks` 키 자체를 뺀다.
-- 훅 `command`는 이벤트 JSON을 **stdin**으로 받는다. `jq`는 인자 없이 stdin을 읽으므로 위 명령이 편집된 파일 경로를 그대로 추출한다(공식 문서 예시와 동일 형식).
-- 기존 `settings.json`이 있으면 `allow`/`deny` 배열을 **합치고 중복 제거**, 다른 키는 보존한다.
-
----
-
-## 5. `.claude/agents/code-reviewer.md` (확장, 선택 시)
-
-> 자체 컨텍스트에서 도는 읽기 전용 검토 보조 에이전트. `tools`를 읽기 전용으로 제한해 코드를 수정하지 못하게 한다.
-
-```markdown
----
-name: code-reviewer
-description: 정확성·보안·유지보수성 관점에서 코드를 검토한다. 변경분 리뷰가 필요할 때 사용한다.
-tools: Read, Grep, Glob
----
-
-당신은 시니어 코드 리뷰어입니다. 다음을 검토하세요:
-
-1. 정확성: 로직 오류, 엣지 케이스, null 처리
-2. 보안: 인젝션, 인증 우회, 데이터 노출
-3. 유지보수성: 네이밍, 복잡도, 중복
-
-모든 지적에는 구체적인 수정안을 함께 제시하세요.
-```
-
----
-
-## 6. `.claude/skills/run-checks/SKILL.md` (확장, 선택 시)
-
-> test·lint를 한 번에 돌리는 단축 스킬. `/run-checks`로 호출.
-
-```markdown
----
-name: run-checks
-description: 프로젝트의 테스트와 린트를 한 번에 실행하고 결과를 요약한다. '체크 돌려줘', '테스트랑 린트 확인' 같은 요청에 사용한다.
----
-
-# Run Checks
-
-다음을 순서대로 실행하고 결과를 간결히 요약한다. 실패가 있으면 어떤 명령이 왜 실패했는지 먼저 보고한다.
-
-1. 린트: `{{LINT}}`
-2. 테스트: `{{TEST}}`
-
-각 명령의 성공/실패와 핵심 출력만 보고하고, 실패 시 수정 방향을 제안한다.
-```
-
-명령이 하나라도 없으면 해당 줄을 빼고, 둘 다 없으면 이 스킬을 만들지 않는다.
+- `CLAUDE.md`는 전용 4지선다 처리(`question-flow.md` 2-1)를 따른다. 어떤 경로든 MIT 헤더 보존.
+- 그 외 마크다운(`rules/*.md` 등): 빠진 절만 이어쓰고, 이미 있는 절은 손대지 않는다.
+- JSON(`settings.json`, `settings.local.json`, `.mcp.json`): 기존 키를 보존하며 병합. 배열(`permissions.allow`/`deny`)은 합치고 중복 제거.
+- 개인용 파일(`CLAUDE.local.md`, `settings.local.json`, `agent-memory-local/`)을 생성하면 `.gitignore` 등록을 안내/추가한다.

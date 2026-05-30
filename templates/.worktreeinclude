@@ -1,0 +1,10 @@
+# git worktree를 새로 만들 때, 여기에 적은 gitignored 파일을 새 worktree로 복사합니다.
+# (worktree는 새 체크아웃이라 .env 같은 untracked 파일이 기본적으로 빠지기 때문)
+# 패턴 문법은 .gitignore 와 동일합니다. gitignored 이면서 매칭되는 파일만 복사됩니다.
+
+# 로컬 환경 변수
+.env
+.env.local
+
+# 개인 설정 / 자격 증명
+config/secrets.json

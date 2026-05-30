@@ -15,6 +15,7 @@
 | 확장 | 표준 + 스타터 `agents/`·`skills/` |
 
 특징
+- **기본 CLAUDE.md 자동 세팅** — 플러그인이 켜진 프로젝트에 `CLAUDE.md`가 없으면, 세션 시작 시 번들된 행동 가이드라인을 자동 설치(비파괴). 이미 있으면 건드리지 않고, `/setup-harness`에서 통합 옵션을 제공.
 - **적응형** — 목표/깊이를 물어 필요한 만큼만 생성
 - **자동 감지** — 빌드/테스트/린트 명령을 추론해 확인만 받음
 - **무단 변경 금지** — 기존 설정은 보존하고 빠진 부분만 보완
@@ -50,6 +51,17 @@ claude plugin install harness-starter@harness-starter-marketplace --scope projec
 claude plugin validate /path/to/harness --strict
 ```
 
+## 직접 세팅하고 싶다면 (대화 없이)
+
+위저드 대신 손으로 설정하고 싶다면, 복사-사용 템플릿과 범용 가이드를 제공합니다.
+
+- **범용 가이드**: [docs/project-setup-guide.md](docs/project-setup-guide.md) — 프로젝트 스코프 `.claude` 항목 전체(핵심~고급)의 역할·로드 시점·커밋 여부·설정 시점 정리.
+- **복사-사용 템플릿**: [templates/](templates/) — 타깃 레이아웃 그대로 미러. 프로젝트로 복사 후 `{{...}}`만 채우면 됩니다.
+
+```bash
+cp -R templates/. /path/to/your-project/   # 필요 없는 파일은 지우고 {{...}} 채우기
+```
+
 ## 구조
 
 ```
@@ -57,15 +69,27 @@ harness/
 ├── .claude-plugin/
 │   ├── marketplace.json
 │   └── plugin.json
-└── skills/
-    └── setup-harness/
-        ├── SKILL.md
-        └── references/
-            ├── question-flow.md   # 질문 트리·분기
-            ├── templates.md       # 생성 파일 템플릿
-            └── concepts.md        # 초보자 용어집
+├── hooks/
+│   └── hooks.json              # SessionStart: 기본 CLAUDE.md 자동 세팅
+├── scripts/
+│   └── ensure-claude-md.sh     # 없으면 설치, 있으면 무변경 (비파괴)
+├── templates/                  # 복사-사용 스타터 (프로젝트 루트 + .claude/ 미러)
+│   ├── CLAUDE.md               # Karpathy 행동 가이드라인 + MIT 고지 헤더 (기본 배포)
+│   ├── CLAUDE.local.md, .mcp.json, .worktreeinclude
+│   └── .claude/                # settings(.local).json, rules, agents, skills,
+│                               #   commands, output-styles, workflows·agent-memory 안내
+├── docs/
+│   └── project-setup-guide.md  # 범용 프로젝트 세팅 가이드
+├── skills/
+│   └── setup-harness/
+│       ├── SKILL.md
+│       └── references/         # question-flow / templates / concepts
+├── THIRD_PARTY_LICENSES.md     # 번들된 MIT 제3자 콘텐츠 고지
+└── LICENSE                     # Apache-2.0
 ```
 
 ## 라이선스
 
-Apache-2.0
+이 플러그인은 **Apache-2.0**입니다.
+
+번들된 기본 `templates/CLAUDE.md`는 제3자 콘텐츠로 **MIT 라이선스**입니다 — 출처: [`multica-ai/andrej-karpathy-skills`](https://github.com/multica-ai/andrej-karpathy-skills) (원저자 forrestchang). MIT 고지는 해당 파일 상단 헤더와 [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md)에 동봉되어, 플러그인이 사용자 프로젝트에 써넣는 모든 사본에 라이선스가 동반됩니다.
