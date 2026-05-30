@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "harness-starter-marketplace",
+  "description": "초보자를 위한 대화형 프로젝트 세팅 위저드 플러그인을 제공하는 마켓플레이스.",
+  "owner": {
+    "name": "tykim"
+  },
+  "plugins": [
+    {
+      "name": "harness-starter",
+      "source": "./",
+      "description": "초보자를 위한 대화형 프로젝트 세팅 위저드. 다지선다 질문으로 프로젝트 스코프 .claude 설정(CLAUDE.md, rules, 권한/훅)을 단계별로 생성한다.",
+      "version": "0.1.0"
+    }
+  ]
+}
